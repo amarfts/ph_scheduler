@@ -12,7 +12,7 @@ function LoginPage() {
     e.preventDefault();
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", { username, password });
+      const res = await axios.post("http://34.32.89.181/api/auth/login", { username, password });
 
       localStorage.setItem("token", res.data.token);
 
