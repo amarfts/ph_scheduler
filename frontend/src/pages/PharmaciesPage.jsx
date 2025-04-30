@@ -3,12 +3,13 @@ import axios from "axios";
 import api from "../api";
 import Toast from "../components/Toast";
 import { useNavigate } from "react-router-dom";
+import Select from "react-select";
 
 function PharmaciesPage() {
   const navigate = useNavigate();
   const [pharmacies, setPharmacies] = useState([]);
-  const [userToken, setUserToken] = useState(localStorage.getItem('token') || "");
-  const [facebookToken, setFacebookToken] = useState(localStorage.getItem('facebookToken') || "");
+  const [userToken, setUserToken] = useState(localStorage.getItem("token") || "");
+  const [facebookToken, setFacebookToken] = useState(localStorage.getItem("facebookToken") || "");
   const [pages, setPages] = useState([]);
   const [toast, setToast] = useState({ message: "", type: "success", visible: false });
 
@@ -24,15 +25,18 @@ function PharmaciesPage() {
     pageAccessToken: "",
     latitude: "",
     longitude: "",
-    location: ""
+    location: "",
   });
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
       navigate("/login");
     } else {
-      fetchPharmacies(); 
+      fetchPharmacies();
     }
   }, [navigate]);
 
@@ -50,6 +54,35 @@ function PharmaciesPage() {
     }
   };
 
+  const fetchAllPages = async (url, accumulated = []) => {
+    try {
+      const res = await axios.get(url);
+      const newPages = res.data.data || [];
+      const allPages = accumulated.concat(newPages);
+
+      if (res.data.paging?.next) {
+        return fetchAllPages(res.data.paging.next, allPages);
+      }
+      return allPages;
+    } catch (error) {
+      console.error("Erreur chargement pages:", error);
+      showToast("Erreur chargement pages ❌", "error");
+      return [];
+    }
+  };
+
+  const fetchPages = async () => {
+    if (!facebookToken) {
+      showToast("Merci de fournir ton token utilisateur Facebook ⚠️", "error");
+      return;
+    }
+
+    const url = `https://graph.facebook.com/me/accounts?access_token=${facebookToken}`;
+    const allPages = await fetchAllPages(url);
+    setPages(allPages);
+    showToast("Pages chargées ✅", "success");
+  };
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -57,12 +90,12 @@ function PharmaciesPage() {
   const handleFacebookTokenChange = (e) => {
     const newToken = e.target.value;
     setFacebookToken(newToken);
-    localStorage.setItem('facebookToken', newToken);
+    localStorage.setItem("facebookToken", newToken);
   };
 
   const handleResetFacebookToken = () => {
     setFacebookToken("");
-    localStorage.removeItem('facebookToken');
+    localStorage.removeItem("facebookToken");
     setPages([]);
     showToast("Facebook Token reset ✅", "success");
   };
@@ -76,6 +109,17 @@ function PharmaciesPage() {
     }
   };
 
+  const handleSelectPageInForm = (selectedOption) => {
+    const selectedPage = pages.find((p) => p.id === selectedOption.value);
+    if (selectedPage) {
+      setForm({
+        ...form,
+        facebookPageId: selectedPage.id,
+        pageAccessToken: selectedPage.access_token,
+      });
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -85,15 +129,11 @@ function PharmaciesPage() {
     }
 
     try {
-      await axios.post(
-        "/api/pharmacies/add",
-        form,
-        {
-          headers: {
-            Authorization: `Bearer ${userToken}`,
-          },
-        }
-      );
+      await axios.post("/api/pharmacies/add", form, {
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+        },
+      });
       resetForm();
       fetchPharmacies();
       showToast("Pharmacie ajoutée ✅", "success");
@@ -116,7 +156,7 @@ function PharmaciesPage() {
       pageAccessToken: "",
       latitude: "",
       longitude: "",
-      location: ""
+      location: "",
     });
   };
 
@@ -137,34 +177,10 @@ function PharmaciesPage() {
     }
   };
 
-  const fetchPages = async () => {
-    if (!facebookToken) {
-      showToast("Merci de fournir ton token utilisateur Facebook ⚠️", "error");
-      return;
-    }
-
-    try {
-      const res = await axios.get(`https://graph.facebook.com/me/accounts?access_token=${facebookToken}`);
-      setPages(res.data.data || []);
-      showToast("Pages chargées ✅", "success");
-    } catch (error) {
-      console.error(error);
-      showToast("Erreur chargement pages ❌", "error");
-    }
-  };
-
-  const handleSelectPageInForm = (e) => {
-    const selectedPageId = e.target.value;
-    const selectedPage = pages.find((p) => p.id === selectedPageId);
-
-    if (selectedPage) {
-      setForm({
-        ...form,
-        facebookPageId: selectedPage.id,
-        pageAccessToken: selectedPage.access_token
-      });
-    }
-  };
+  const paginatedPharmacies = pharmacies.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const showToast = (message, type = "success") => {
     setToast({ message, type, visible: true });
@@ -207,17 +223,19 @@ function PharmaciesPage() {
         <h2 style={{ marginBottom: "15px", color: "#212121" }}>➕ Ajouter une Pharmacie</h2>
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column" }}>
           <input name="name" value={form.name} onChange={handleChange} placeholder="Nom pharmacie" style={inputStyle} required />
-          {/* Facebook Page Selection */}
+
           {pages.length > 0 && (
-            <select value={form.facebookPageId} onChange={handleSelectPageInForm} style={inputStyle} required>
-              <option value="">-- Sélectionner une page Facebook --</option>
-              {pages.map((page) => (
-                <option key={page.id} value={page.id}>
-                  {page.name}
-                </option>
-              ))}
-            </select>
+            <Select
+              options={pages.map((page) => ({
+                value: page.id,
+                label: page.name,
+              }))}
+              onChange={handleSelectPageInForm}
+              placeholder="Rechercher une page Facebook..."
+              styles={{ container: (base) => ({ ...base, marginBottom: "15px" }) }}
+            />
           )}
+
           <select name="postingDay" value={form.postingDay} onChange={handleChange} style={inputStyle}>
             <option value="monday">Lundi</option>
             <option value="tuesday">Mardi</option>
@@ -236,15 +254,14 @@ function PharmaciesPage() {
             <option value="public">API Publique (Position)</option>
           </select>
 
-          {/* Conditional Fields */}
-          {form.apiType === 'private' && (
+          {form.apiType === "private" && (
             <>
               <input name="pharmacyIdForNeighbor" value={form.pharmacyIdForNeighbor} onChange={handleChange} placeholder="ID Voisinage" style={inputStyle} required />
               <input name="authToken" value={form.authToken} onChange={handleChange} placeholder="Auth Token" style={inputStyle} required />
             </>
           )}
 
-          {form.apiType === 'public' && (
+          {form.apiType === "public" && (
             <>
               <input name="latitude" value={form.latitude} onChange={handleChange} placeholder="Latitude" style={inputStyle} required />
               <input name="longitude" value={form.longitude} onChange={handleChange} placeholder="Longitude" style={inputStyle} required />
@@ -273,12 +290,12 @@ function PharmaciesPage() {
               </tr>
             </thead>
             <tbody>
-              {pharmacies.map((pharmacy) => (
+              {paginatedPharmacies.map((pharmacy) => (
                 <tr key={pharmacy.id}>
                   <td>{pharmacy.name}</td>
                   <td>{pharmacy.postingDay}</td>
                   <td>{pharmacy.postingFrequency}</td>
-                  <td>{pharmacy.apiType === 'public' ? '🌍 Public' : '🔒 Privé'}</td>
+                  <td>{pharmacy.apiType === "public" ? "🌍 Public" : "🔒 Privé"}</td>
                   <td>
                     <button style={dangerButton} onClick={() => handleDelete(pharmacy.id)}>
                       Supprimer
@@ -289,12 +306,30 @@ function PharmaciesPage() {
             </tbody>
           </table>
         </div>
+
+        <div style={{ marginTop: "20px" }}>
+          {Array.from({ length: Math.ceil(pharmacies.length / itemsPerPage) }, (_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentPage(i + 1)}
+              style={{
+                margin: "2px",
+                padding: "8px 12px",
+                backgroundColor: currentPage === i + 1 ? "#0d47a1" : "#e0e0e0",
+                color: currentPage === i + 1 ? "#fff" : "#000",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+              }}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Toast Notification */}
-      {toast.visible && (
-        <Toast message={toast.message} type={toast.type} onClose={hideToast} />
-      )}
+      {toast.visible && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
     </div>
   );
 }
@@ -312,7 +347,7 @@ const inputStyle = {
   padding: "10px",
   borderRadius: "8px",
   border: "1px solid #9e9e9e",
-  width: "98.5%"
+  width: "98.5%",
 };
 
 const primaryButton = {
