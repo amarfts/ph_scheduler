@@ -1,10 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const pharmaciesRoutes = require('./routes/pharmacies');
-const postRoutes = require('./routes/posts');
-const authRoutes = require('./routes/auth');
-const db = require('./db/database');
 
 require('dotenv').config();
 
