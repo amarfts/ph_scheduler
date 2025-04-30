@@ -7,6 +7,7 @@ const { v4: uuidv4 } = require('uuid');
 const router = express.Router();
 
 router.post('/login', (req, res) => {
+  console.log("🚨 req.body received:", req.body);
     const { username, password } = req.body;
   
     if (!username || !password) return res.status(400).json({ error: "Nom d'utilisateur et mot de passe requis." });
