@@ -42,7 +42,7 @@ function PostsPage() {
 
   async function fetchScheduledPosts() {
     try {
-      const res = await axios.get("http://34.32.89.181:5000/api/posts", {
+      const res = await axios.get("http://34.32.89.181/api/posts", {
         headers: { Authorization: `Bearer ${userToken}` }
       });
       setScheduledPosts(res.data);
@@ -56,7 +56,7 @@ function PostsPage() {
   
   async function fetchPostMessage() {
     try {
-      const res = await axios.get("http://34.32.89.181:5000/api/posts/get-post-message", {
+      const res = await axios.get("http://34.32.89.181/api/posts/get-post-message", {
         headers: { Authorization: `Bearer ${userToken}` }
       });
       setPostMessage(res.data.message || "");
@@ -77,7 +77,7 @@ function PostsPage() {
       setLoading(true);
       setResults([]);
       const res = await axios.post(
-        "http://34.32.89.181:5000/api/posts/generate",
+        "http://34.32.89.181/api/posts/generate",
         { startDate: postDate },
         { headers: { Authorization: `Bearer ${userToken}` }} 
       );
@@ -103,7 +103,7 @@ function PostsPage() {
     try {
       setSavingMessage(true);
       await axios.post(
-        "http://34.32.89.181:5000/api/posts/update-post-message",
+        "http://34.32.89.181/api/posts/update-post-message",
         { newMessage: postMessage },
         { headers: { Authorization: `Bearer ${userToken}` }}
       );
@@ -120,7 +120,7 @@ function PostsPage() {
   const forcePostNow = async (postId) => {
     try {
       await axios.post(
-        `http://34.32.89.181:5000/api/posts/force-post/${postId}`,
+        `http://34.32.89.181/api/posts/force-post/${postId}`,
         {},
         { headers: { Authorization: `Bearer ${userToken}` } }
       );
@@ -138,7 +138,7 @@ function PostsPage() {
   
     try {
       await axios.delete(
-        `http://34.32.89.181:5000/api/posts/cancel/${postId}`,
+        `http://34.32.89.181/api/posts/cancel/${postId}`,
         { headers: { Authorization: `Bearer ${userToken}` }  }
       );
       fetchScheduledPosts();
@@ -155,7 +155,7 @@ function PostsPage() {
   
     try {
       await axios.delete(
-        "http://34.32.89.181:5000/api/posts/delete-all",
+        "http://34.32.89.181/api/posts/delete-all",
         { headers: { Authorization: `Bearer ${userToken}` }}
       );
       fetchScheduledPosts();
