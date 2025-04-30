@@ -14,7 +14,7 @@ async function convertPdfToPng(pdfPath) {
   const outputPattern = path.join(tmpDir, `${outputFileName}-%d.png`);
 
   return new Promise((resolve, reject) => {
-    const command = `magick convert -density 200 "${pdfPath}" -resize 800x1000 "${outputPattern}"`;
+    const command = `convert -density 200 "${pdfPath}" -resize 800x1000 "${outputPattern}"`;
 
     exec(command, (error, stdout, stderr) => {
       if (error) {
