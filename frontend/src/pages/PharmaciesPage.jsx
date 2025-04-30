@@ -38,7 +38,7 @@ function PharmaciesPage() {
 
   const fetchPharmacies = async () => {
     try {
-      const res = await axios.get("http://34.32.89.181/api/pharmacies/list", {
+      const res = await axios.get("/api/pharmacies/list", {
         headers: {
           Authorization: `Bearer ${userToken}`,
         },
@@ -86,7 +86,7 @@ function PharmaciesPage() {
 
     try {
       await axios.post(
-        "http://34.32.89.181/api/pharmacies/add",
+        "/api/pharmacies/add",
         form,
         {
           headers: {
@@ -124,7 +124,7 @@ function PharmaciesPage() {
     if (!window.confirm("Supprimer cette pharmacie ?")) return;
 
     try {
-      await axios.delete(`http://34.32.89.181/api/pharmacies/delete/${id}`, {
+      await axios.delete(`/api/pharmacies/delete/${id}`, {
         headers: {
           Authorization: `Bearer ${userToken}`,
         },
