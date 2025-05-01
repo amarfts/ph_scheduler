@@ -222,6 +222,12 @@ function PharmaciesPage() {
     <p style={{ backgroundColor: '#fff3cd', color: '#856404', padding: '12px 20px', borderRadius: '8px', border: '1px solid #ffeeba', marginBottom: '25px' }}>
       📢 <strong>Mise à jour (01/05/2025) :</strong> Pour Publigarde, il suffit maintenant d'entrer <strong>l'adresse</strong> de la pharmacie.
     </p>
+    <p style={{ backgroundColor: '#fff3cd', color: '#856404', padding: '12px 20px', borderRadius: '8px', border: '1px solid #ffeeba', marginBottom: '25px' }}>
+      📢 <strong>Mise à jour (01/05/2025) :</strong> Pour Pharmagarde, il suffit maintenant d'entrer <strong>l'adresse</strong> de la pharmacie.
+    </p>
+    <p style={{ backgroundColor: '#fff3cd', color: '#856404', padding: '12px 20px', borderRadius: '8px', border: '1px solid #ffeeba', marginBottom: '25px' }}>
+      📢 <strong>Mise à jour (01/05/2025) :</strong> Le jeton facebook est maintenant<strong> chiffré </strong>dans la base de données.
+    </p>
 
       {/* Facebook Connect Section */}
       <div style={cardStyle}>
