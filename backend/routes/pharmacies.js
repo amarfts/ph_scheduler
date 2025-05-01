@@ -29,7 +29,7 @@ function authorizeAdmin(req, res, next) {
 }
 
 router.post('/add', authenticateToken, authorizeAdmin, (req, res) => {
-  let { name, facebookPageId, postingDay, postingFrequency, pharmacyIdForNeighbor, authToken, cookieToken, pageAccessToken, radius, latitude, longitude, location, apiType } = req.body;
+  let { name, facebookPageId, postingDay, postingFrequency, pharmacyIdForNeighbor, authToken, cookieToken, pageAccessToken, radius, latitude, longitude, address, apiType, location  } = req.body;
   const id = uuidv4();
 
   if (radius === undefined || radius === null) {
@@ -41,9 +41,9 @@ router.post('/add', authenticateToken, authorizeAdmin, (req, res) => {
   }
 
   db.run(`
-    INSERT INTO pharmacies (id, name, facebookPageId, postingDay, postingFrequency, pharmacyIdForNeighbor, authToken, cookieToken, pageAccessToken, radius, latitude, longitude, location, apiType)
+    INSERT INTO pharmacies (id, name, facebookPageId, postingDay, postingFrequency, pharmacyIdForNeighbor, authToken, cookieToken, pageAccessToken, radius, latitude, longitude, address, apiType, location)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `, [id, name, facebookPageId, postingDay, postingFrequency, pharmacyIdForNeighbor, authToken, cookieToken, pageAccessToken, radius, latitude, longitude, location, apiType], (err) => {
+  `, [id, name, facebookPageId, postingDay, postingFrequency, pharmacyIdForNeighbor, authToken, cookieToken, pageAccessToken, radius, latitude, longitude, address, apiType, location], (err) => {
     if (err) {
       console.error(err.message);
       return res.status(500).json({ error: 'Failed to add pharmacy' });
