@@ -278,8 +278,8 @@ function PharmaciesPage() {
             <option value="biweekly">Bimensuel</option>
           </select>
           <select name="apiType" value={form.apiType} onChange={handleChange} style={inputStyle}>
-            <option value="private">Pharmagarde</option>
             <option value="public">Publigarde</option>
+            <option value="private">Pharmagarde</option>
           </select>
           <>
             <input name="address" value={form.address} onChange={handleChange} placeholder="Adresse complète" style={inputStyle} required />
