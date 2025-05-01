@@ -102,12 +102,6 @@ function PharmaciesPage() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleFacebookTokenChange = (e) => {
-    const newToken = e.target.value;
-    setFacebookToken(newToken);
-    localStorage.setItem("facebookToken", newToken);
-  };
-
   const handleFacebookTokenChange = async (e) => {
     const newToken = e.target.value;
     setFacebookToken(newToken);
