@@ -16,7 +16,7 @@ db.serialize(() => {
       radius INTEGER DEFAULT 1,
       latitude REAL,
       longitude REAL,
-      location TEXT,
+      address TEXT,
       apiType DEFAULT 'private'
     )
   `);

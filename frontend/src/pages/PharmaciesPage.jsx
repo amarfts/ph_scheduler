@@ -23,9 +23,7 @@ function PharmaciesPage() {
     authToken: "",
     cookieToken: "",
     pageAccessToken: "",
-    latitude: "",
-    longitude: "",
-    location: "",
+    adress: "",
   });
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -154,9 +152,7 @@ function PharmaciesPage() {
       authToken: "",
       cookieToken: "",
       pageAccessToken: "",
-      latitude: "",
-      longitude: "",
-      location: "",
+      address: "",
     });
   };
 
@@ -192,7 +188,11 @@ function PharmaciesPage() {
 
   return (
     <div className="container" style={{ padding: "30px", backgroundColor: "#f5f5f5", minHeight: "100vh", fontFamily: "Arial, sans-serif" }}>
-      <h1 style={{ fontSize: "30px", fontWeight: "bold", marginBottom: "30px", color: "#212121" }}>🏥 Gestion des Pharmacies</h1>
+    <h1 style={{ fontSize: "30px", fontWeight: "bold", marginBottom: "30px", color: "#212121" }}>🏥 Gestion des Pharmacies</h1>
+
+    <p style={{ backgroundColor: '#fff3cd', color: '#856404', padding: '12px 20px', borderRadius: '8px', border: '1px solid #ffeeba', marginBottom: '25px' }}>
+      📢 <strong>Mise à jour (01/05/2025) :</strong> Pour Publigarde, il suffit maintenant d'entrer <strong>l'adresse</strong> de la pharmacie.
+    </p>
 
       {/* Facebook Connect Section */}
       <div style={cardStyle}>
@@ -263,9 +263,7 @@ function PharmaciesPage() {
 
           {form.apiType === "public" && (
             <>
-              <input name="latitude" value={form.latitude} onChange={handleChange} placeholder="Latitude" style={inputStyle} required />
-              <input name="longitude" value={form.longitude} onChange={handleChange} placeholder="Longitude" style={inputStyle} required />
-              <input name="location" value={form.location} onChange={handleChange} placeholder="Ville" style={inputStyle} required />
+              <input name="address" value={form.address} onChange={handleChange} placeholder="Adresse complète" style={inputStyle} required />
             </>
           )}
 

@@ -7,13 +7,11 @@ const { findSufficientRadiusAndFetchPdf } = require('../services/fetchPublicPdf'
 const convertPdfToPng = require('../services/convertPdfToPng');
 const { uploadPhotoToPage, createPost } = require('../services/facebook');
 const { deleteScheduledPostFromFacebook } = require('../services/facebook');
+const { getLatLngFromAddress } = require('../utils/geocode');
 const jwt = require('jsonwebtoken');
-
 
 const fs = require('fs');
 require('dotenv').config(); 
-
-
 
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
@@ -123,22 +121,41 @@ router.post('/generate', authenticateToken, authorizeAdmin, async (req, res) => 
           continue;
         }
 
+        let latitude = pharmacy.latitude;
+        let longitude = pharmacy.longitude;
+
+        if (!latitude || !longitude) {
+          try {
+            const coords = await getLatLngFromAddress(pharmacy.address);
+            latitude = coords.latitude;
+            longitude = coords.longitude;
+
+            db.run(
+              `UPDATE pharmacies SET latitude = ?, longitude = ? WHERE id = ?`,
+              [latitude, longitude, pharmacyId],
+              (err) => {
+                if (err) console.warn(`⚠️ Failed to update lat/lng for ${pharmacy.name}`);
+              }
+            );
+          } catch (geoErr) {
+            console.error(`❌ Skipping ${pharmacy.name} due to geocoding failure`);
+            results.push({ pharmacy: pharmacy.name, error: 'Failed to geocode address' });
+            continue;
+          }
+        }
+
         let pdfPath;
 
         if (pharmacy.apiType === 'public') {
           console.log("🌍 Fetching Public Duty PDF dynamically...");
-
           const publicBearerToken = process.env.PUBLIC_API_TOKEN;
           if (!publicBearerToken) throw new Error('Missing PUBLIC_API_TOKEN');
 
-          const { latitude, longitude, location } = pharmacy;
-
-          const initialRadius = 1; // Start with 1 km and expand as needed
           pdfPath = await findSufficientRadiusAndFetchPdf(
-            initialRadius,
+            1,
             latitude,
             longitude,
-            location,
+            pharmacy.address,
             start,
             endDate,
             publicBearerToken
@@ -153,7 +170,6 @@ router.post('/generate', authenticateToken, authorizeAdmin, async (req, res) => 
         if (!pngPaths || pngPaths.length === 0) throw new Error('No PNG images generated from PDF');
 
         const selectedImagePath = pngPaths[0];
-
         const pageAccessToken = pharmacy.pageAccessToken;
         const photoId = await uploadPhotoToPage(pageAccessToken, facebookPageId, selectedImagePath);
         const postId = await createPost(pageAccessToken, facebookPageId, finalPostMessage, photoId, Math.floor(postDate.getTime() / 1000));
@@ -174,12 +190,12 @@ router.post('/generate', authenticateToken, authorizeAdmin, async (req, res) => 
         console.error(`❌ Error for pharmacy ${pharmacy?.name || 'UNKNOWN'}:`, fbError);
         results.push({ pharmacy: pharmacy?.name || 'UNKNOWN', error: fbError });
       }
-
     }
 
     res.json({ success: true, results });
   });
 });
+
 
 
 function calculateNextPostDate(startDate, postingDay) {
@@ -425,4 +441,3 @@ router.delete('/delete-all', authenticateToken, authorizeAdmin, (req, res) => {
 
 
 module.exports = router;
-
