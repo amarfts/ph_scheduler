@@ -53,60 +53,42 @@ router.post('/generate', authenticateToken, authorizeAdmin, async (req, res) => 
     return res.status(500).json({ error: 'Failed to fetch post message.' });
   }
 
-  if (!postMessageRow) {
-    console.error('❌ No post message found in database.');
+  const finalPostMessage = postMessageRow?.message;
+  if (!finalPostMessage) {
     return res.status(500).json({ error: 'No post message found.' });
   }
 
-  const finalPostMessage = postMessageRow.message;
-
   db.all(`SELECT * FROM pharmacies`, [], async (err, pharmacies) => {
-    if (err) {
-      console.error('❌ Error fetching pharmacies:', err.message);
-      return res.status(500).json({ error: 'Database error.' });
-    }
-
-    if (!pharmacies || pharmacies.length === 0) {
-      console.error('❌ No pharmacies found.');
-      return res.status(404).json({ error: 'No pharmacies found.' });
-    }
+    if (err) return res.status(500).json({ error: 'Database error.' });
+    if (!pharmacies || pharmacies.length === 0) return res.status(404).json({ error: 'No pharmacies found.' });
 
     console.log(`✅ Fetched ${pharmacies.length} pharmacies`);
-
     const results = [];
 
     for (const pharmacy of pharmacies) {
-      if (!pharmacy || !pharmacy.name) {
-        console.error('❌ Invalid pharmacy data:', pharmacy);
+      if (!pharmacy?.name) {
         results.push({ pharmacy: 'UNKNOWN', error: 'Invalid pharmacy data' });
         continue;
       }
 
       try {
         console.log(`🚀 Processing pharmacy: ${pharmacy.name}`);
-
-        const { id: pharmacyId, facebookPageId, postingDay, postingFrequency } = pharmacy;
-
+        const { id: pharmacyId, facebookPageId, postingDay, postingFrequency, apiType } = pharmacy;
         if (!facebookPageId) throw new Error('Missing Facebook Page ID');
 
         const start = new Date(startDate);
         start.setHours(6, 0, 0, 0);
-
         const postDate = calculateNextPostDate(start, postingDay);
 
         const existingPost = await new Promise((resolve, reject) => {
           db.get(
             `SELECT * FROM posts WHERE pharmacyId = ? AND DATE(scheduledDatetime) = DATE(?) AND status != 'cancelled'`,
             [pharmacyId, postDate.toISOString()],
-            (err, row) => {
-              if (err) reject(err);
-              else resolve(row);
-            }
+            (err, row) => (err ? reject(err) : resolve(row))
           );
         });
 
         if (existingPost) {
-          console.log(`ℹ️ Skipping ${pharmacy.name}: post already exists for ${postDate.toISOString()}`);
           results.push({ pharmacy: pharmacy.name, status: 'skipped', reason: 'Already scheduled for this date' });
           continue;
         }
@@ -116,14 +98,11 @@ router.post('/generate', authenticateToken, authorizeAdmin, async (req, res) => 
         endDate.setDate(start.getDate() + maxAdvanceDays);
 
         if (postDate > endDate) {
-          console.log(`ℹ️ Skipping pharmacy ${pharmacy.name}: next post date (${postDate.toISOString()}) is beyond the allowed range.`);
           results.push({ pharmacy: pharmacy.name, status: 'skipped', reason: 'Next post date beyond allowed range' });
           continue;
         }
 
-        let latitude = pharmacy.latitude;
-        let longitude = pharmacy.longitude;
-
+        let { latitude, longitude } = pharmacy;
         if (!latitude || !longitude) {
           try {
             const coords = await getLatLngFromAddress(pharmacy.address);
@@ -138,43 +117,35 @@ router.post('/generate', authenticateToken, authorizeAdmin, async (req, res) => 
               }
             );
           } catch (geoErr) {
-            console.error(`❌ Skipping ${pharmacy.name} due to geocoding failure`);
+            console.error(`❌ Skipping ${pharmacy.name}: geocoding failed`);
             results.push({ pharmacy: pharmacy.name, error: 'Failed to geocode address' });
             continue;
           }
         }
 
+        // 📄 FETCH THE PDF BASED ON API TYPE
         let pdfPath;
+        const bearerToken = process.env.PUBLIC_API_TOKEN;
+        if (!bearerToken) throw new Error('Missing PUBLIC_API_TOKEN');
 
-        if (pharmacy.apiType === 'public') {
-          console.log("🌍 Fetching Duty PDF with new private logic (2x DAY/NIGHT)...");
-        
-          const publicBearerToken = process.env.PUBLIC_API_TOKEN;
-          if (!publicBearerToken) throw new Error('Missing PUBLIC_API_TOKEN');
-        
+        if (apiType === 'private') {
+          console.log("🔒 Fetching with custom logic (2x/day & night) from Pharmagarde...");
           pdfPath = await findPrivateSufficientRadiusAndFetchPdf(
-            1,
-            latitude,
-            longitude,
-            pharmacy.address,
-            start,
-            endDate,
-            publicBearerToken
+            1, latitude, longitude, pharmacy.address, start, endDate, bearerToken
           );
-        }
-         else {
-          console.log("🔒 Fetching Private Duty PDF...");
-          const { pharmacyIdForNeighbor, authToken, cookieToken } = pharmacy;
-          pdfPath = await fetchPdfForPharmacy(pharmacyIdForNeighbor, authToken, cookieToken, start, endDate);
+        } else {
+          console.log("🌍 Fetching from Publigarde (classic radius search)...");
+          pdfPath = await findSufficientRadiusAndFetchPdf(
+            1, latitude, longitude, pharmacy.address, start, endDate, bearerToken
+          );
         }
 
         const pngPaths = await convertPdfToPng(pdfPath);
         if (!pngPaths || pngPaths.length === 0) throw new Error('No PNG images generated from PDF');
 
         const selectedImagePath = pngPaths[0];
-        const pageAccessToken = pharmacy.pageAccessToken;
-        const photoId = await uploadPhotoToPage(pageAccessToken, facebookPageId, selectedImagePath);
-        const postId = await createPost(pageAccessToken, facebookPageId, finalPostMessage, photoId, Math.floor(postDate.getTime() / 1000));
+        const photoId = await uploadPhotoToPage(pharmacy.pageAccessToken, facebookPageId, selectedImagePath);
+        const postId = await createPost(pharmacy.pageAccessToken, facebookPageId, finalPostMessage, photoId, Math.floor(postDate.getTime() / 1000));
 
         const postDbId = uuidv4();
         db.run(
@@ -189,7 +160,7 @@ router.post('/generate', authenticateToken, authorizeAdmin, async (req, res) => 
 
       } catch (error) {
         const fbError = error.response?.data?.error?.message || error.response?.data || error.message;
-        console.error(`❌ Error for pharmacy ${pharmacy?.name || 'UNKNOWN'}:`, fbError);
+        console.error(`❌ Error for ${pharmacy?.name || 'UNKNOWN'}:`, fbError);
         results.push({ pharmacy: pharmacy?.name || 'UNKNOWN', error: fbError });
       }
     }
