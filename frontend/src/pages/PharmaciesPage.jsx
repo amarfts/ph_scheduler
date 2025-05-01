@@ -23,7 +23,7 @@ function PharmaciesPage() {
     authToken: "",
     cookieToken: "",
     pageAccessToken: "",
-    adress: "",
+    address: "",
   });
 
   const [currentPage, setCurrentPage] = useState(1);
