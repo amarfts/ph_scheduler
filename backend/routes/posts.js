@@ -2,12 +2,12 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db/database');
 const { v4: uuidv4 } = require('uuid');
-const { fetchPdfForPharmacy } = require('../services/fetchPdf');
+const { findPrivateSufficientRadiusAndFetchPdf } = require('../services/fetchPrivatePdf'); 
 const { findSufficientRadiusAndFetchPdf } = require('../services/fetchPublicPdf');
 const convertPdfToPng = require('../services/convertPdfToPng');
 const { uploadPhotoToPage, createPost } = require('../services/facebook');
 const { deleteScheduledPostFromFacebook } = require('../services/facebook');
-const { getLatLngFromAddress } = require('../utils/geocode');
+const { getLatLngFromAddress } = require('../services/geocode');
 const jwt = require('jsonwebtoken');
 
 const fs = require('fs');
@@ -147,11 +147,12 @@ router.post('/generate', authenticateToken, authorizeAdmin, async (req, res) => 
         let pdfPath;
 
         if (pharmacy.apiType === 'public') {
-          console.log("🌍 Fetching Public Duty PDF dynamically...");
+          console.log("🌍 Fetching Duty PDF with new private logic (2x DAY/NIGHT)...");
+        
           const publicBearerToken = process.env.PUBLIC_API_TOKEN;
           if (!publicBearerToken) throw new Error('Missing PUBLIC_API_TOKEN');
-
-          pdfPath = await findSufficientRadiusAndFetchPdf(
+        
+          pdfPath = await findPrivateSufficientRadiusAndFetchPdf(
             1,
             latitude,
             longitude,
@@ -160,7 +161,8 @@ router.post('/generate', authenticateToken, authorizeAdmin, async (req, res) => 
             endDate,
             publicBearerToken
           );
-        } else {
+        }
+         else {
           console.log("🔒 Fetching Private Duty PDF...");
           const { pharmacyIdForNeighbor, authToken, cookieToken } = pharmacy;
           pdfPath = await fetchPdfForPharmacy(pharmacyIdForNeighbor, authToken, cookieToken, start, endDate);

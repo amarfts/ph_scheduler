@@ -38,7 +38,7 @@ db.serialize(() => {
       id TEXT PRIMARY KEY,
       message TEXT NOT NULL
     )
-  `)
+  `);
 
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
@@ -47,7 +47,16 @@ db.serialize(() => {
     password TEXT NOT NULL,
     role TEXT NOT NULL
     )
-  `)  ;
+  `);
+
+  db.run(`
+  CREATE TABLE IF NOT EXISTS user_tokens (
+    userId TEXT PRIMARY KEY,
+    encryptedToken TEXT
+  );
+  `);
+
+
 });
 
 module.exports = db;

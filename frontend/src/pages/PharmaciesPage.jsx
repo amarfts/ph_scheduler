@@ -12,6 +12,7 @@ function PharmaciesPage() {
   const [facebookToken, setFacebookToken] = useState(localStorage.getItem("facebookToken") || "");
   const [pages, setPages] = useState([]);
   const [toast, setToast] = useState({ message: "", type: "success", visible: false });
+  const [showToken, setShowToken] = useState(false);
 
   const [form, setForm] = useState({
     name: "",
@@ -33,11 +34,27 @@ function PharmaciesPage() {
     const token = localStorage.getItem("token");
     if (!token) {
       navigate("/login");
-    } else {
-      fetchPharmacies();
+      return;
     }
+    setUserToken(token);
+    fetchPharmacies();
+    fetchSavedFacebookToken(token);
   }, [navigate]);
-
+  
+  const fetchSavedFacebookToken = async (token) => {
+    try {
+      const res = await axios.get('/api/token/get-token', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.data.token) {
+        setFacebookToken(res.data.token);
+      }
+    } catch (error) {
+      console.warn("⚠️ Token fetch failed or not saved:", error.message);
+    }
+  };
+  
+  
   const fetchPharmacies = async () => {
     try {
       const res = await axios.get("/api/pharmacies/list", {
@@ -91,13 +108,25 @@ function PharmaciesPage() {
     localStorage.setItem("facebookToken", newToken);
   };
 
-  const handleResetFacebookToken = () => {
-    setFacebookToken("");
-    localStorage.removeItem("facebookToken");
-    setPages([]);
-    showToast("Facebook Token reset ✅", "success");
-  };
-
+  const handleFacebookTokenChange = async (e) => {
+    const newToken = e.target.value;
+    setFacebookToken(newToken);
+    localStorage.setItem("facebookToken", newToken);
+  
+    try {
+      await axios.post(
+        "/api/token/save-token",
+        { token: newToken },
+        {
+          headers: { Authorization: `Bearer ${userToken}` } // 👈 fixed this line
+        }
+      );
+      showToast("Token Facebook sauvegardé ✅", "success");
+    } catch (error) {
+      showToast("Erreur sauvegarde token ❌", "error");
+    }
+  };  
+  
   const handleCopyFacebookToken = () => {
     if (facebookToken) {
       navigator.clipboard.writeText(facebookToken);
@@ -198,14 +227,16 @@ function PharmaciesPage() {
       <div style={cardStyle}>
         <h2 style={{ marginBottom: "15px", color: "#212121" }}>🔑 Connecte ton Compte Facebook</h2>
         <input
-          type="text"
+          type={showToken ? "text" : "password"}
           value={facebookToken}
           onChange={handleFacebookTokenChange}
           placeholder="Token utilisateur Facebook"
           style={inputStyle}
         />
-
         <div style={{ marginBottom: "15px" }}>
+          <button type="button" onClick={() => setShowToken(!showToken)} style={{ ...primaryButton, marginRight: "10px" }}>
+            {showToken ? "Masquer" : "Afficher"} Token
+          </button>
           <button type="button" onClick={fetchPages} style={{ ...primaryButton, marginRight: "10px" }}>
             Charger Pages
           </button>
