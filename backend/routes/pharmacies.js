@@ -42,7 +42,7 @@ router.post('/add', authenticateToken, authorizeAdmin, (req, res) => {
 
   db.run(`
     INSERT INTO pharmacies (id, name, facebookPageId, postingDay, postingFrequency, pharmacyIdForNeighbor, authToken, cookieToken, pageAccessToken, radius, latitude, longitude, address, apiType, location)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `, [id, name, facebookPageId, postingDay, postingFrequency, pharmacyIdForNeighbor, authToken, cookieToken, pageAccessToken, radius, latitude, longitude, address, apiType, location], (err) => {
     if (err) {
       console.error(err.message);
