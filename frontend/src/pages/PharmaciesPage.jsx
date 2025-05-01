@@ -287,8 +287,8 @@ function PharmaciesPage() {
             <option value="biweekly">Bimensuel</option>
           </select>
           <select name="apiType" value={form.apiType} onChange={handleChange} style={inputStyle}>
-            <option value="private">API Privée (Tokens)</option>
-            <option value="public">API Publique (Position)</option>
+            <option value="private">Pharmagarde</option>
+            <option value="public">Publigarde</option>
           </select>
 
           {form.apiType === "private" && (
@@ -330,7 +330,7 @@ function PharmaciesPage() {
                   <td>{pharmacy.name}</td>
                   <td>{pharmacy.postingDay}</td>
                   <td>{pharmacy.postingFrequency}</td>
-                  <td>{pharmacy.apiType === "public" ? "🌍 Public" : "🔒 Privé"}</td>
+                  <td>{pharmacy.apiType === "public" ? "🌍 Publigarde" : "🔒 Pharmagarde"}</td>
                   <td>
                     <button style={dangerButton} onClick={() => handleDelete(pharmacy.id)}>
                       Supprimer
