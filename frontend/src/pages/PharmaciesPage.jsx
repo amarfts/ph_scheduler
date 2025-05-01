@@ -281,19 +281,9 @@ function PharmaciesPage() {
             <option value="private">Pharmagarde</option>
             <option value="public">Publigarde</option>
           </select>
-
-          {form.apiType === "private" && (
-            <>
-              <input name="pharmacyIdForNeighbor" value={form.pharmacyIdForNeighbor} onChange={handleChange} placeholder="ID Voisinage" style={inputStyle} required />
-              <input name="authToken" value={form.authToken} onChange={handleChange} placeholder="Auth Token" style={inputStyle} required />
-            </>
-          )}
-
-          {form.apiType === "public" && (
-            <>
-              <input name="address" value={form.address} onChange={handleChange} placeholder="Adresse complète" style={inputStyle} required />
-            </>
-          )}
+          <>
+            <input name="address" value={form.address} onChange={handleChange} placeholder="Adresse complète" style={inputStyle} required />
+          </>
 
           <button type="submit" style={{ ...primaryButton, marginTop: "20px" }}>
             ➕ Ajouter
