@@ -240,9 +240,6 @@ function PharmaciesPage() {
           <button type="button" onClick={fetchPages} style={{ ...primaryButton, marginRight: "10px" }}>
             Charger Pages
           </button>
-          <button type="button" onClick={handleResetFacebookToken} style={{ ...dangerButton, marginRight: "10px" }}>
-            Reset Token
-          </button>
           <button type="button" onClick={handleCopyFacebookToken} style={successButton}>
             Copier Token
           </button>
