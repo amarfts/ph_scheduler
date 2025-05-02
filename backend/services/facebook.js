@@ -10,7 +10,7 @@ async function uploadPhotoToPage(pageAccessToken, pageId, imagePath) {
   form.append('source', fs.createReadStream(imagePath));
 
   const res = await axios.post(
-    `https://graph.facebook.com/v19.0/${pageId}/photos`,
+    `https://graph.facebook.com/v22.0/${pageId}/photos`,
     form,
     { headers: form.getHeaders() }
   );
@@ -38,7 +38,7 @@ async function createPost(pageAccessToken, pageId, message, photoId, scheduledPu
   }
 
   const res = await axios.post(
-    `https://graph.facebook.com/v19.0/${pageId}/feed`,
+    `https://graph.facebook.com/v22.0/${pageId}/feed`,
     body
   );
 
@@ -48,7 +48,7 @@ async function createPost(pageAccessToken, pageId, message, photoId, scheduledPu
 
 async function deleteScheduledPostFromFacebook(postFbId, pageAccessToken) {
   try {
-    const res = await axios.delete(`https://graph.facebook.com/v19.0/${postFbId}`, {
+    const res = await axios.delete(`https://graph.facebook.com/v22.0/${postFbId}`, {
       params: {
         access_token: pageAccessToken
       }
