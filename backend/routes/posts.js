@@ -77,7 +77,7 @@ router.post('/generate', authenticateToken, authorizeAdmin, async (req, res) => 
         if (!facebookPageId) throw new Error('Missing Facebook Page ID');
 
         const start = new Date(startDate);
-        start.setHours(6, 0, 0, 0);
+        start.setHours(8, 0, 0, 0);
         const postDate = calculateNextPostDate(start, postingDay);
 
         const existingPost = await new Promise((resolve, reject) => {
