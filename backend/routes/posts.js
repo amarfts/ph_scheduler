@@ -123,7 +123,7 @@ router.post('/generate', authenticateToken, authorizeAdmin, async (req, res) => 
           }
         }
 
-        // 📄 FETCH THE PDF BASED ON API TYPE
+
         let pdfPath;
         const bearerToken = process.env.PUBLIC_API_TOKEN;
         if (!bearerToken) throw new Error('Missing PUBLIC_API_TOKEN');
