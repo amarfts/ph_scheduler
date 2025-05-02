@@ -183,7 +183,7 @@ function calculateNextPostDate(startDate, postingDay) {
 
   const postDate = new Date(start);
   postDate.setDate(start.getDate() + diff);
-  postDate.setHours(10, 0, 0, 0); 
+  postDate.setHours(6, 0, 0, 0); 
 
   if (postDate <= now) {
     postDate.setDate(postDate.getDate() + 7);
