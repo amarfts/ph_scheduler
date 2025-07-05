@@ -1,4 +1,4 @@
-# 🧪 Pharmacy Duty Poster Bot
+# 🧪 Pharmacy Duty Poster
 
 Automated backend service to fetch local pharmacy duty schedules (from PDFs), convert them to images, and schedule Facebook posts for multiple pharmacies — all without manual intervention.
 
