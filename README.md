@@ -21,7 +21,7 @@ Built as part of a professional internship project.
 
 ## 🧹 Features
 
-* 📍 **Geolocation matching**: Each pharmacy is associated with a specific PDF schedule and message.
+* 📍 **Geolocation matching**: Each pharmacy is associated with a specific PDF schedule.
 * 🖼️ **PDF processing**: Automatically fetches the right PDF, converts the correct page to PNG.
 * 🛄 **Facebook automation**: Schedules a post with image and message.
 * 🔁 **Retry logic**: Auto-retries failed Facebook uploads and handles token refresh if needed.
