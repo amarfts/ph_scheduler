@@ -60,25 +60,6 @@ Schedule post with caption + image
 
 ---
 
-## 📁 Project Structure
-
-```
-.
-├── index.js              # Main Express app
-├── scheduler.js          # Cron job or posting logic
-├── pdfProcessor.js       # PDF-to-PNG conversion logic
-├── facebookClient.js     # Facebook API helper
-├── auth.js               # JWT middleware
-├── db/                   # JSON or SQLite data
-│   ├── municipalities.json
-│   └── posts.sqlite
-├── utils/                # Geocoding, retry, logging
-├── .env                  # Secrets (tokens, API keys)
-└── README.md
-```
-
----
-
 ## 🚀 Running the App
 
 1. Clone the repo
