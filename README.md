@@ -77,7 +77,7 @@ Schedule post with caption + image
 4. Start the server:
 
    ```bash
-   node index.js
+   node server.js
    ```
 
 ---
